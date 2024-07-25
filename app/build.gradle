@@ -154,7 +154,7 @@ dependencies {
     implementation('org.xwalk:xwalk_shared_library:23.53.589.4') {
         exclude group: 'com.android.support'
     }
-    implementation 'com.lzy.net:okgo:4.9.3'
+    implementation 'com.lzy.net:okgo:3.0.4'
     implementation 'com.owen:tv-recyclerview:3.0.0'
     implementation 'com.blankj:utilcodex:1.31.0'
     implementation 'com.github.getActivity:XXPermissions:18.5'
