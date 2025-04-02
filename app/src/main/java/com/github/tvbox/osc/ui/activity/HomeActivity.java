@@ -1,6 +1,7 @@
 package com.github.tvbox.osc.ui.activity;
 
 import android.Manifest;
+import android.content.Context;
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.IntEvaluator;
@@ -69,14 +70,6 @@ import com.orhanobut.hawk.Hawk;
 import com.owen.tvrecyclerview.widget.TvRecyclerView;
 import com.owen.tvrecyclerview.widget.V7GridLayoutManager;
 import com.owen.tvrecyclerview.widget.V7LinearLayoutManager;
-//新增更换线路
-import com.github.tvbox.osc.ui.adapter.ApiHistoryDialogAdapter;
-import com.github.tvbox.osc.ui.dialog.ApiHistoryDialog;
-import java.util.HashMap;
-//新增复制线路
-import android.content.ClipData;
-import android.content.ClipboardManager;
-import android.content.Context;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -103,7 +96,6 @@ public class HomeActivity extends BaseActivity {
     private LinearLayout contentLayout;
     private TextView tvName;
     private ImageView tvWifi;
-    private ImageView tvXianlu;//新增新路更换
     private ImageView tvFind;
     private ImageView tvStyle;
     private ImageView tvDraw;
@@ -148,7 +140,7 @@ public class HomeActivity extends BaseActivity {
 
         EventBus.getDefault().register(this);
         ControlManager.get().startServer();
-        App.startWebserver();//启动这个我这个修改的版本不会显示剧情分类，原版可以，所以就不要这功能了
+        App.startWebserver();
         initView();
         initViewModel();
         useCacheConfig = false;
@@ -169,7 +161,6 @@ public class HomeActivity extends BaseActivity {
         this.topLayout = findViewById(R.id.topLayout);
         this.tvName = findViewById(R.id.tvName);
         this.tvWifi = findViewById(R.id.tvWifi);
-        this.tvXianlu = findViewById(R.id.tvXianlu);//新增新路更换
         this.tvFind = findViewById(R.id.tvFind);
         this.tvStyle = findViewById(R.id.tvStyle);
         this.tvDraw = findViewById(R.id.tvDrawer);
@@ -256,8 +247,6 @@ public class HomeActivity extends BaseActivity {
                 if (direction != View.FOCUS_DOWN) {
                     return false;
                 }
-                //在一级导航按下键到影片列表后，一级导航加粗 
-                HomeActivity.this.isDownOrUp = true;
                 BaseLazyFragment baseLazyFragment = fragments.get(sortFocused);
                 if (!(baseLazyFragment instanceof GridFragment)) {
                     return false;
@@ -296,7 +285,6 @@ public class HomeActivity extends BaseActivity {
                 }
             }
         });
-
         tvName.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -313,56 +301,6 @@ public class HomeActivity extends BaseActivity {
                 }catch (Exception ignored){
                 }
             }
-        });
-
-	//更换多线路事件
-        tvXianlu.setOnClickListener(v -> {
-            ArrayList<String> history = Hawk.get(HawkConfig.API_HISTORY, new ArrayList<>());
-            HashMap<String, String> map = Hawk.get(HawkConfig.API_MAP, new HashMap<>());
-            if (history.isEmpty())
-                return;
-            String current = Hawk.get(HawkConfig.API_NAME, "");
-            int idx = 0;
-            if (history.contains(current))
-                idx = history.indexOf(current);
-
-            ApiHistoryDialog dialog = new ApiHistoryDialog(HomeActivity.this);
-            dialog.setTip(getString(R.string.dia_xianlu_list));
-            dialog.setAdapter(new ApiHistoryDialogAdapter.SelectDialogInterface() {
-                @Override
-                public void click(String value) {
-                    if (!current.equals(value)) {
-                        // 路线切换，执行重启应用程序的操作		
-                        Hawk.put(HawkConfig.API_NAME, value);
-                        if (map.containsKey(value)){
-                            Hawk.put(HawkConfig.API_URL, map.get(value));
-                        } else {
-                            Hawk.put(HawkConfig.API_URL, value);
-                        }
-                        dialog.dismiss();
-                        restartApplication();
-                    }
-                }
-
-                @Override
-                public void del(String value, ArrayList<String> data) {
-                    Hawk.put(HawkConfig.API_HISTORY, data);
-                    map.remove(value);
-                    Hawk.put(HawkConfig.API_MAP, map);
-                }
-
-                //增加复制url功能
-                @Override
-                public void copy(String value, ArrayList<String> data) {
-                    String apiUrl = map.get(value);
-                    ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                    ClipData clip = ClipData.newPlainText("API URL", apiUrl);
-                    clipboard.setPrimaryClip(clip);
-                    Toast.makeText(getApplicationContext(), "接口地址已复制到剪贴板", Toast.LENGTH_SHORT).show();
-                }	    
-            }, history, idx);
-	    
-            dialog.show();
         });
         // Button : Search --------------------------------------------
         tvFind.setOnClickListener(new View.OnClickListener() {
@@ -427,12 +365,12 @@ public class HomeActivity extends BaseActivity {
     //站点切换
     public static void homeRecf() {
         int homeRec = Hawk.get(HawkConfig.HOME_REC, -1);
-        int limit = 3;
+        int limit = 2;
         if (homeRec == limit) homeRec = -1;
         homeRec++;
         Hawk.put(HawkConfig.HOME_REC, homeRec);
     }
-    //站点切换	
+    
     public static boolean reHome(Context appContext) {
         Intent intent = new Intent(appContext, HomeActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -516,7 +454,7 @@ public class HomeActivity extends BaseActivity {
             }
             if (Hawk.get(HawkConfig.HOME_DEFAULT_SHOW, false)) {
                 jumpActivity(LivePlayActivity.class);
-            }
+            }         
             return;
         }
         tvNameAnimation();
@@ -880,7 +818,6 @@ public class HomeActivity extends BaseActivity {
             tvStyle.setFocusable(false);
             tvDraw.setFocusable(false);
             tvMenu.setFocusable(false);
-            tvXianlu.setFocusable(false);
             return;
         }
         // Show Top =======================================================
@@ -900,7 +837,6 @@ public class HomeActivity extends BaseActivity {
             tvStyle.setFocusable(true);
             tvDraw.setFocusable(true);
             tvMenu.setFocusable(true);
-            tvXianlu.setFocusable(true);
         }
     }
 
@@ -924,14 +860,14 @@ public class HomeActivity extends BaseActivity {
             // Multi Column Selection
             int spanCount = (int) Math.floor(sites.size() / 10);
             if (spanCount <= 1) spanCount = 1;
-            if (spanCount >= 4) spanCount = 4;
+            if (spanCount >= 3) spanCount = 3;
 
             TvRecyclerView tvRecyclerView = dialog.findViewById(R.id.list);
             tvRecyclerView.setLayoutManager(new V7GridLayoutManager(dialog.getContext(), spanCount));
             ConstraintLayout cl_root = dialog.findViewById(R.id.cl_root);
             ViewGroup.LayoutParams clp = cl_root.getLayoutParams();
             if (spanCount != 1) {
-                clp.width = AutoSizeUtils.mm2px(dialog.getContext(), 480 + 200 * (spanCount - 1));
+                clp.width = AutoSizeUtils.mm2px(dialog.getContext(), 400 + 260 * (spanCount - 1));
             }
 
             dialog.setTip(getString(R.string.dia_source));
@@ -973,18 +909,7 @@ public class HomeActivity extends BaseActivity {
             dialog.show();
         }
     }
-//重启软件
-    private void restartApplication() {
-        Intent intent = getPackageManager().getLaunchIntentForPackage(getPackageName());
-        if (intent != null) {
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-            HomeActivity.this.finish();
-            System.exit(0);
-        }
-    }
-    //刷新主界面
+
     void reloadHome() {
         Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -1019,4 +944,5 @@ public class HomeActivity extends BaseActivity {
 //            jumpActivity(SettingActivity.class);
 //        }
 //    }
+
 }
