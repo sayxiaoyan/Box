@@ -1275,7 +1275,18 @@ public class PlayFragment extends BaseLazyFragment {
         loadFoundVideoUrls = new LinkedList<String>();
         loadFoundVideoUrlsHeader = new HashMap<String, HashMap<String, String>>();
     }
-
+    public void setPlayTitle(boolean show)
+    {
+        if(show){
+            String playTitleInfo= "";
+            if(mVodInfo!=null){
+                playTitleInfo = mVodInfo.name + " " + mVodInfo.seriesMap.get(mVodInfo.playFlag).get(mVodInfo.playIndex).name;
+            }
+            mController.setTitle(playTitleInfo);
+        }else {
+            mController.setTitle("");
+        }
+    }
     public void play(boolean reset) {
     	if (mVodInfo == null) return;
         VodInfo.VodSeries vs = mVodInfo.seriesMap.get(mVodInfo.playFlag).get(mVodInfo.getplayIndex());
