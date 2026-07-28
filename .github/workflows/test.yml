@@ -10,22 +10,65 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # 设置 Python
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      # 安装 Python 依赖
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install lxml ujson pyquery requests jsonpath cachetools pycryptodome beautifulsoup4
+
+      # 修改 `build.gradle` 文件
+      - name: Modify pyramid build.gradle
+        run: |
+          # 替换Windows路径为系统Python路径
+          # sed -i "s|buildPython(\"D:/Programs/Python/Python311/python.exe\")|buildPython(\"/usr/bin/python3\")|g" pyramid/build.gradle
+          sed -i '/buildPython("D:\/Programs\/Python\/Python311\/python.exe")/d' pyramid/build.gradle
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK components
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager \
+            "platform-tools" \
+            "platforms;android-34" \
+            "build-tools;34.0.0"
+
+      - name: Setup local.properties
+        run: |
+          SDK_PATH="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+          echo "sdk.dir=$SDK_PATH" > local.properties
+
       - name: Build With Gradle
         run: |
           chmod +x gradlew
-          ./gradlew assemblerelease --build-cache --parallel --daemon --warning-mode all
+          ./gradlew assembleRelease --build-cache --parallel --daemon --warning-mode all
+
       - name: Prepare App
         run: |
           mkdir -p ${{ github.workspace }}/apk/
-          for file in `find ~ -name "*.apk" -print`; do
-            mv "$file" ${{ github.workspace }}/apk/
-          done
+          find app/build/outputs/apk -name "*.apk" -type f -exec cp {} ${{ github.workspace }}/apk/ \;
+
       - name: Upload App To Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: com.github.tvbox.osc
           path: ${{ github.workspace }}/apk/*
