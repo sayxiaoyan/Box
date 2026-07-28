@@ -54,7 +54,7 @@ public class JarLoader {
         }
         boolean success = false;
         try {
-            File cacheDir = new File(App.getInstance().getCacheDir().getAbsolutePath() + "/catvod_csp");
+            File cacheDir = new File(App.getInstance().getCacheDir().getAbsolutePath() + "/jar");
             if (!cacheDir.exists())
                 cacheDir.mkdirs();
             final DexClassLoader classLoader = new DexClassLoader(jar, cacheDir.getAbsolutePath(), null, App.getInstance().getClassLoader());
