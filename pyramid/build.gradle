@@ -11,12 +11,21 @@ android {
         targetSdkVersion 28
 
         python {
-            buildPython("D:/Programs/Python/Python38/python.exe")
+            def pythonPath = System.getenv("PYTHON_PATH")
+            if (pythonPath != null && !pythonPath.isEmpty()) {
+                buildPython(pythonPath)
+            } else if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+                buildPython("D:/Programs/Python/Python311/python.exe")
+            } else {
+                buildPython("python3")
+            }
             pip {
                 install "lxml"
                 install "ujson"
-                install "pyquery"
+                install "pyquery==2.0.1"
+                install "cssselect==1.2.0"
                 install "requests"
+                install "PySocks"
                 install "jsonpath"
                 install "cachetools"
                 install "pycryptodome"
