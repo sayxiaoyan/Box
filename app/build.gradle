@@ -37,12 +37,7 @@ android {
 
     flavorDimensions += ["abi", "brand", "mode"]
     productFlavors {
-        armeabi {
-            dimension = "abi"
-            ndk {
-                abiFilters 'armeabi-v7a'
-            }
-        }
+        
         arm64 {
             dimension = "abi"
             ndk {
@@ -55,16 +50,7 @@ android {
             dimension = "brand"
         }
 
-        hisense {
-            //海信的
-            applicationId 'com.github.hisense.osc.tk'
-            dimension = "brand"
-        }
-        normal {
-            dimension = "mode"
-            minSdkVersion 21
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
+        
         python {
             dimension = "mode"
             minSdkVersion 21
